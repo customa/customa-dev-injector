@@ -1,173 +1,94 @@
 const { Plugin } = require("powercord/entities");
 const { getModuleByDisplayName, React } = require("powercord/webpack");
+const { sleep } = require('powercord/util');
+const fs = require('fs');
 const path = require('path')
+
+let styleManager;
+let idStorage = [];
+let idCounter = 0;
 
 const { inject, uninject } = require("powercord/injector");
 const Settings = require('./reactcomponents/Settings');
 
 module.exports = class DevInjector extends Plugin {
   async startPlugin() {
+    styleManager = powercord.pluginManager.get('pc-styleManager');
 
-    this.loadCSS(path.join(__dirname, 'style.css'))
+    styleManager.load(`Customa-Injector-Styles`, path.join(__dirname, 'style.css'));
 
     this.registerSettings(
       'devInjector',
       'Customa Dev Injector',
       () => React.createElement(Settings, { settings: this.settings })
     )
+
+    this.loadFiles()
+    this.loadFolder()
+
+    this.log("Initial Load successful!")
   }
 
-  pluginWillUnload() {
+  async pluginWillUnload() {
+    while (!styleManager.ready) {
+      await sleep(1);
+    }
 
-    this.unloadCSS()
-    // console.log(powercord);
-    // powercord.pluginManager.get('pc-settings').unregister('pc-customa-dev-injector')
-    // this.unloadCSS();
-    // uninject("pc-translate-context");
-    // uninject("pc-translate-content");
-    // uninject("pc-translate-contentRemove");
+    idStorage.forEach(id => {
+      styleManager.unload(`Customa-Injector-File-${id}`);
+    })
+
+    styleManager.unload(`Customa-Injector-Styles`);
+
+    idStorage = [];
+    idCounter = 0;
   }
 
-  // async _injectTranslator() {
-  //   const languages = Object.keys(translate.languages).filter(
-  //     k => typeof translate.languages[k] === "string"
-  //   );
+  async loadFiles(files = this.settings.get('files'), exceptions = this.settings.get('exceptions'), folder = '') {
+    while (!styleManager.ready) {
+      await sleep(1);
+    }
 
-  //   const _this = this;
-  //   const MessageContent = await getModuleByDisplayName("MessageContent");
-  //   inject(
-  //     "pc-translate-contentRemove",
-  //     MessageContent.prototype,
-  //     "componentWillUnmount",
-  //     function () {
-  //       if (_this.translations[this.props.message.id]) {
-  //         this.props.message.contentParsed = this.original;
-  //         _this.translations[this.props.message.id] = null;
-  //       }
-  //     }
-  //   );
+    if (files == undefined) {
+      files = [];
+    }
 
-  //   inject(
-  //     "pc-translate-content",
-  //     MessageContent.prototype,
-  //     "render",
-  //     function (args) {
-  //       if (_this.translations[this.props.message.id]) {
-  //         this.original = [...this.props.message.contentParsed];
-  //         this.props.message.contentParsed = [
-  //           _this.translations[this.props.message.id]
-  //         ];
-  //       } else if (
-  //         !_this.translations[this.props.message.id] &&
-  //         this.original
-  //       ) {
-  //         this.props.message.contentParsed = this.original;
-  //         this.original = null;
-  //       }
-  //       return args;
-  //     },
-  //     true
-  //   );
+    files.forEach(file => {
+      if (folder != '' && folder.slice(-1)[0] != '\\') {
+        file = folder + '\\' + file;
+      } else {
+        file = folder + file;
+      }
 
-  //   const MessageContextMenu = await getModuleByDisplayName(
-  //     "MessageContextMenu"
-  //   );
-  //   inject(
-  //     "pc-translate-context",
-  //     MessageContextMenu.prototype,
-  //     "render",
-  //     function (args, res) {
-  //       const setText = async opts => {
-  //         const cozy = !!this.props.target.closest(".pc-containerCozyBounded");
-  //         const message = cozy
-  //           ? this.props.target.closest(".pc-containerCozyBounded")
-  //           : this.props.target.parentElement.parentElement;
+      if (!exceptions.includes(file)) {
+        if (fs.lstatSync(file).isFile()) {
+          if (file.split('.').slice(-1)[0] == 'css') {
+            let id = `${idCounter}-${file.split("\\").slice(-1)[0].split('.')[0]}`;
+            idCounter++;
+            idStorage.push(id);
 
-  //         message.style.transition = "0.2s";
-  //         message.style.opacity = "0";
+            styleManager.load(`Customa-Injector-File-${id}`, file);
+          }
+        } else {
+          this.loadFolder([file])
+        }
+      } else {
+        this.log("Excluded File: " + file);
+      }
+    });
+  }
 
-  //         let fromLang = "";
-
-  //         const timestamp = cozy
-  //           ? message.querySelector(".pc-timestampCozy")
-  //           : message;
-  //         await Promise.all([
-  //           sleep(200),
-  //           Promise.all(
-  //             [...message.querySelectorAll(".pc-markup")].map(async markup => {
-  //               const markupInstance = getOwnerInstance(markup);
-  //               const { text, from } = await translate(
-  //                 markupInstance.props.message.contentParsed
-  //                   .filter(c => typeof c === "string")
-  //                   .join(""),
-  //                 opts
-  //               );
-  //               _this.translations[markupInstance.props.message.id] = text;
-  //               fromLang = translate.languages[from.language.iso];
-  //               markupInstance.forceUpdate();
-  //             })
-  //           )
-  //         ]);
-
-  //         if (!timestamp.innerHTML.includes("Translated from")) {
-  //           const translateReset = createElement("span", {
-  //             innerHTML: `(Translated from ${fromLang})`,
-  //             className: "powercord-translate-reset",
-  //             async onclick() {
-  //               message.style.opacity = "0";
-  //               await sleep(200);
-
-  //               message.querySelectorAll(".pc-markup").forEach(markup => {
-  //                 const markupInstance = getOwnerInstance(markup);
-  //                 _this.translations[markupInstance.props.message.id] = null;
-  //                 markupInstance.forceUpdate();
-  //               });
-
-  //               timestamp.removeChild(cozy ? this : this.parentElement);
-  //               message.style.opacity = "1";
-  //             }
-  //           });
-  //           if (cozy) timestamp.appendChild(translateReset);
-  //           else {
-  //             let translateResetContainer = createElement("div", {
-  //               className: "powercord-translate-reset-compact-container"
-  //             });
-  //             translateResetContainer.appendChild(translateReset);
-  //             timestamp.appendChild(translateResetContainer);
-  //           }
-  //         }
-
-  //         message.style.opacity = "1";
-  //       };
-
-  //       res.props.children.push(
-  //         React.createElement(Submenu, {
-  //           name: "Translate",
-  //           hint: "to",
-  //           seperate: true,
-  //           onClick: () => setText({ to: "en" }),
-  //           getItems: () =>
-  //             languages.map(to => ({
-  //               type: "submenu",
-  //               hint: "from",
-  //               name: translate.languages[to],
-  //               onClick: () => setText({ to }),
-  //               getItems: () =>
-  //                 languages.map(from => ({
-  //                   type: "button",
-  //                   name: translate.languages[from],
-  //                   onClick: () =>
-  //                     setText({
-  //                       to,
-  //                       from
-  //                     })
-  //                 }))
-  //             }))
-  //         })
-  //       );
-
-  //       return res;
-  //     }
-  //   );
-  // }
+  loadFolder(folders = this.settings.get('folders'), exceptions = this.settings.get('exceptions')) {
+    folders.forEach(folder => {
+      if (!exceptions.includes(folder)) {
+        if (!fs.lstatSync(folder).isFile()) {
+          this.loadFiles(fs.readdirSync(folder), undefined, folder)
+        } else {
+          this.loadFiles([folder])
+        }
+      } else {
+        this.log("Excluded Folder: " + folder);
+      }
+    });
+  }
 };

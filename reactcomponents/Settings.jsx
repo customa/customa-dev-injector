@@ -13,13 +13,10 @@ module.exports = class Settings extends React.Component {
       filesCategoryOpened: false,
       foldersCategoryOpened: false,
       exceptionsCategoryOpened: true,
-      files: get('loadedFiles', []),
-      folders: get('loadedFolders', []),
-      exceptions: get('exceptionsFolders', [])
+      files: get('files', []),
+      folders: get('folders', []),
+      exceptions: get('folders', [])
     }
-
-    this.state.files.push('a');
-    this.state.files.push('b');
   }
 
   render() {
@@ -55,16 +52,18 @@ module.exports = class Settings extends React.Component {
         <Button
           className={"customa-injector-save"}
           disabled={!this.state.changes}
-          onClick={() => { this.saving() }}>Save</Button>
+          onClick={() => { this.saving(); }}>Save</Button>
       </div>
-
     )
   }
 
   saving() {
-    let files = this.state.files;
-    let folders = this.state.folders;
-    let exceptions = this.state.exceptions;
+    this._set('files', this.state.files.filter(e => e != ''));
+    this._set('folders', this.state.folders.filter(e => e != ''));
+    this._set('exceptions', this.state.exceptions.filter(e => e != ''));
+
+    this.state.changes = false;
+    powercord.pluginManager.remount('pc-customa-dev-injector')
   }
 
   generateInputs(toLoad) {
