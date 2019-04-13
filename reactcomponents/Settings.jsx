@@ -1,18 +1,18 @@
-const { getModuleByDisplayName, React } = require('powercord/webpack');
-const { Category } = require('powercord/components/settings');
-const { Button } = require('powercord/components');
-const Input = getModuleByDisplayName('TextInput');
+const { getModuleByDisplayName, React } = require('powercord/webpack')
+const { Category } = require('powercord/components/settings')
+const { Button } = require('powercord/components')
+const Input = getModuleByDisplayName('TextInput')
 
 module.exports = class Settings extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
 
-    const get = props.settings.get.bind(props.settings);
+    const get = props.settings.get.bind(props.settings)
 
     this.state = {
       filesCategoryOpened: false,
       foldersCategoryOpened: false,
-      exceptionsCategoryOpened: true,
+      exceptionsCategoryOpened: false,
       files: get('files', []),
       folders: get('folders', []),
       exceptions: get('folders', [])
@@ -38,69 +38,67 @@ module.exports = class Settings extends React.Component {
           onChange={() => this.setState({ foldersCategoryOpened: !this.state.foldersCategoryOpened })}>
           <div id='customa-injector-folders'>
             {this.generateInputs('folders')}
-            <Category
-              name='Exceptions'
-              description='Set Exceptions for Folders and Files for the recursive watching'
-              opened={this.state.exceptionsCategoryOpened}
-              onChange={() => this.setState({ exceptionsCategoryOpened: !this.state.exceptionsCategoryOpened })}>
-              <div id='customa-injector-exceptions'>
-                {this.generateInputs('exceptions')}
-              </div>
-            </Category>
+          </div>
+        </Category>
+        <Category
+          name='Exceptions'
+          description='Set Exceptions for Folders and Files for the recursive watching'
+          opened={this.state.exceptionsCategoryOpened}
+          onChange={() => this.setState({ exceptionsCategoryOpened: !this.state.exceptionsCategoryOpened })}>
+          <div id='customa-injector-exceptions'>
+            {this.generateInputs('exceptions')}
           </div>
         </Category>
         <Button
           className={"customa-injector-save"}
           disabled={!this.state.changes}
-          onClick={() => { this.saving(); }}>Save</Button>
+          onClick={() => { this.saving() }}>Save</Button>
       </div>
     )
   }
 
   saving() {
-    this._set('files', this.state.files.filter(e => e != ''));
-    this._set('folders', this.state.folders.filter(e => e != ''));
-    this._set('exceptions', this.state.exceptions.filter(e => e != ''));
+    this._set('files', this.state.files.filter(e => e != ''))
+    this._set('folders', this.state.folders.filter(e => e != ''))
+    this._set('exceptions', this.state.exceptions.filter(e => e != ''))
 
-    this.state.changes = false;
+    this.state.changes = false
     powercord.pluginManager.remount('pc-customa-dev-injector')
   }
 
   generateInputs(toLoad) {
-    let arrayToLoad = this.state[toLoad].filter(e => e != '').concat(['']);
+    let arrayToLoad = this.state[toLoad].filter(e => e != '').concat([''])
     return (
       <div>
         {arrayToLoad.flatMap((loadedElement, index) => {
           return (
-            <div key={loadedElement}>
-              <Input
-                className={`customa-injector-text-${toLoad}`}
-                key={index}
-                defaultValue={loadedElement}
-                placeholder={toLoad.charAt(0).toUpperCase() + toLoad.slice(1)}
-                onBlur={(e) => {
-                  this.handleTextChange(toLoad, index, e.target.value);
-                  this.setState({ changes: true })
-                }} />
-            </div>
-          );
+            <Input
+              className={`customa-injector-text-${toLoad}`}
+              key={index}
+              defaultValue={loadedElement}
+              placeholder={toLoad.charAt(0).toUpperCase() + toLoad.slice(1)}
+              onBlur={(e) => {
+                this.handleTextChange(toLoad, index, e.target.value)
+                this.setState({ changes: true })
+              }} />
+          )
         })}
       </div>
     )
   }
 
   handleTextChange(type, index, value) {
-    let array = this.state[type].slice();
-    array[index] = value;
-    this.setState({ [type]: array });
+    let array = this.state[type].slice()
+    array[index] = value
+    this.setState({ [type]: array })
   }
 
   _set(key, value = !this.state[key], defaultValue) {
     if (!value && defaultValue) {
-      value = defaultValue;
+      value = defaultValue
     }
 
-    this.props.settings.set(key, value);
-    this.setState({ [key]: value });
+    this.props.settings.set(key, value)
+    this.setState({ [key]: value })
   }
-};
+}

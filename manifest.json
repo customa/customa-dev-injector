@@ -3,5 +3,5 @@
   "version": "0.0.2",
   "description": "Hot reload CSS Files for easy theme development",
   "author": "Customa Team",
-  "license": "MIT"
+  "license": "GPLv3"
 }
