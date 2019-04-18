@@ -35,5 +35,10 @@ powercord.pluginManager.remount('pc-customa-dev-injector')
 ## Known Issues
 * None, create a Gitlab Issue if you find any
 
+## Thanks to
+* [Kosshi](https://github.com/kosshishub) for the original idea
+* Bowser65#0001 - for making me not lose faith in React and writing a solution on how to fix the Settings menu bug (and working on Powercord)
+* aetheryx#0001 - for looking at my messy code and trying to find the issue (and working on Powercord)
+
 Created by: [GhostlyDilemma](https://gitlab.com/GhostlyDilemma) @ [Customa](https://github.com/Customa)<br>
 Original Idea: [Kosshi](https://github.com/kosshishub)
