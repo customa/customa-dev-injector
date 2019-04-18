@@ -20,9 +20,9 @@ b. Put the following command into the Discord dev console:
 powercord.pluginManager.remount('pc-customa-dev-injector')
 ```
 3. Go to the appropriate menu entry in Settings:<br>
-![Menu Entry](docs\images\SettingsMenuEntry.png)
+![Menu Entry](docs/images/SettingsMenuEntry.png)
 4. Open the category you need and define exceptions when needed
-![Menu](docs\images\SettingsMenu.png)
+![Menu](docs/images/SettingsMenu.png)
 5. Press Tab if you need more inputs
 6. When you are done press Save
 
