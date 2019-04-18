@@ -1,5 +1,5 @@
 # Customa CSS Injector
-This is a development plugin for Powercord, used for the plugin development of Customa.
+This is a development plugin for Powercord, used for the theme development of Customa.
 ## What does it do?
 This plugin is for BD Theme developers. It lets you edit CSS live with your favorite text editor.
 It lets you load files and folder, set exceptions for those
@@ -33,8 +33,7 @@ powercord.pluginManager.remount('pc-customa-dev-injector')
 * Variable injection?
 
 ## Known Issues
-* Settings **look** to be broken, but they do work!<br>
-In case the last input displays a link, press Save and reload the menu item
+* None, create a Gitlab Issue if you find any
 
 Created by: [GhostlyDilemma](https://gitlab.com/GhostlyDilemma) @ [Customa](https://github.com/Customa)<br>
 Original Idea: [Kosshi](https://github.com/kosshishub)
