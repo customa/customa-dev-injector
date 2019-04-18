@@ -1,7 +1,7 @@
 # Customa CSS Injector
 This is a development plugin for Powercord, used for the theme development of Customa.
 ## What does it do?
-This plugin is for BD Theme developers. It lets you edit CSS live with your favorite text editor.
+This plugin is for Powercord Theme developers. It lets you edit CSS live with your favorite text editor.
 It lets you load files and folder, set exceptions for those
 ## Features
 * Load Files or Folders
