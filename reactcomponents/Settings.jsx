@@ -15,7 +15,7 @@ module.exports = class Settings extends React.Component {
       exceptionsCategoryOpened: false,
       files: get('files', []),
       folders: get('folders', []),
-      exceptions: get('folders', [])
+      exceptions: get('exceptions', [])
     }
   }
 
@@ -57,40 +57,64 @@ module.exports = class Settings extends React.Component {
     )
   }
 
+  componentWillUnmount() {
+    ['files', 'folders', 'exceptions'].forEach(type => {
+      let array = this.state[type];
+      array.forEach((item, index) => {
+        item.key = index;
+      });
+      this._set(type, array);
+    })
+  }
+
   saving() {
-    this._set('files', this.state.files.filter(e => e != ''))
-    this._set('folders', this.state.folders.filter(e => e != ''))
-    this._set('exceptions', this.state.exceptions.filter(e => e != ''))
+    this._set('files', this.state.files)
+    this._set('folders', this.state.folders)
+    this._set('exceptions', this.state.exceptions)
 
     this.state.changes = false
     powercord.pluginManager.remount('pc-customa-dev-injector')
   }
 
   generateInputs(toLoad) {
-    let arrayToLoad = this.state[toLoad].filter(e => e != '').concat([''])
-    return (
-      <div>
-        {arrayToLoad.flatMap((loadedElement, index) => {
-          return (
-            <Input
-              className={`customa-injector-text-${toLoad}`}
-              key={index}
-              defaultValue={loadedElement}
-              placeholder={toLoad.charAt(0).toUpperCase() + toLoad.slice(1)}
-              onBlur={(e) => {
-                this.handleTextChange(toLoad, index, e.target.value)
-                this.setState({ changes: true })
-              }} />
-          )
-        })}
-      </div>
-    )
-  }
+    let is = [...this.state[toLoad]]
+    if (is.length == 0) {
+      is.push({ key: 0, value: '' })
+    }
 
-  handleTextChange(type, index, value) {
-    let array = this.state[type].slice()
-    array[index] = value
-    this.setState({ [type]: array })
+    const dis = is.map((n, i) => (
+      <div key={n.key}>
+        <Input
+          defaultValue={n.value}
+          onBlur={e => {
+            let a = is
+
+            if (e.target.value === "") {
+              a.splice(i, 1)
+              if (a.length == 0) {
+                return
+              }
+            } else {
+              a[i].value = e.target.value;
+            }
+
+            if (a[a.length - 1].value !== "") {
+              a.push({
+                key: a[a.length - 1].key + 1,
+                value: ""
+              })
+            }
+
+            this.setState({ [toLoad]: a })
+            this.state.changes = true
+          }}
+          placeholder={toLoad.charAt(0).toUpperCase() + toLoad.slice(1)}
+          className={`customa-injector-text-${toLoad}`}
+        />
+      </div>
+    ))
+
+    return <div>{dis}</div>
   }
 
   _set(key, value = !this.state[key], defaultValue) {

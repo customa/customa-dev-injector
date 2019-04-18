@@ -59,10 +59,18 @@ module.exports = class DevInjector extends Plugin {
     }
     if (exceptions == undefined) {
       exceptions = []
+    } else {
+      // To be able to use .includes later in the code, all exceptions will be formed according to the filename
+      exceptions = exceptions.map((exception) => {
+        return exception = exception.value.replace(/\\/g, '/')
+      })
     }
 
+
     // Loop through all the files
-    filenames.forEach(filename => {
+    filenames.filter(e => e.value != '').forEach(element => {
+      // Gather Value from field
+      let filename = element.value;
 
       // Is "folder" not empty or does it already end with a \
       if (folder != '' && (folder.slice(-1)[0] != '\\' || folder.slice(-1)[0] != '/')) {
@@ -71,6 +79,7 @@ module.exports = class DevInjector extends Plugin {
         filename = folder + filename
       }
 
+      // "Clean" the filename in DOS systems
       let cleanFilename = filename.replace(/\\/g, '/')
 
       // If File is exceptions ignore it
@@ -101,7 +110,7 @@ module.exports = class DevInjector extends Plugin {
           }
         } else {
           // In case nested loading is needed, the current "file" will be sent to the folder loading again
-          this.loadFolder([filename])
+          this.loadFolder([{ key: 0, value: filename }])
         }
       }
     })
@@ -114,19 +123,37 @@ module.exports = class DevInjector extends Plugin {
     }
     if (exceptions == undefined) {
       exceptions = []
+    } else {
+      // To be able to use .includes later in the code, all exceptions will be formed according to the filename
+      exceptions = exceptions.map((exception) => {
+        return exception = exception.value.replace(/\\/g, '/')
+      })
     }
 
     // Loop through all the folders
-    foldernames.forEach(foldername => {
+    foldernames.filter(e => e.value != '').forEach(element => {
+      // Gather Value from field
+      let foldername = element.value
+
+      // "Clean" the filename in DOS systems
+      foldername = foldername.replace(/\\/g, '/')
+
       // Ignore the folder when it is in the exceptions
       if (!exceptions.includes(foldername)) {
         // Check whether the "folder", is actually a folder
         if (!fs.lstatSync(foldername).isFile()) {
+
           // Read all Files into loadFiles when it is a folder, use default exceptions but give current folder as parameter so file will be found
-          this.loadFiles(fs.readdirSync(foldername), undefined, foldername)
+          let fileNames = fs.readdirSync(foldername);
+
+          // Prepare Array for call of loadFile
+          let files = fileNames.map((file) => {
+            return file = { key: 0, value: file }
+          })
+          this.loadFiles(files, undefined, foldername)
         } else {
           // Send one element array to file Loading when "folder" is file
-          this.loadFiles([foldername])
+          this.loadFiles({ key: 0, value: foldername })
         }
       } else {
         this.log("Excluded Folder: " + foldername)
