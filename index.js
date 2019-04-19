@@ -83,7 +83,7 @@ module.exports = class DevInjector extends Plugin {
       let cleanFilename = filename.replace(/\\/g, '/')
 
       // If File is exceptions ignore it
-      if (exceptions.includes(filename)) {
+      if (exceptions.includes(cleanFilename)) {
         this.log("Excluded File: " + filename)
       } else if (loadedFiles.includes(cleanFilename)) {
         this.log("Duplicate File: " + filename)
