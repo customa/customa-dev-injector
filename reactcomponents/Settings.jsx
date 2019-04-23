@@ -1,21 +1,19 @@
 const { getModuleByDisplayName, React } = require('powercord/webpack')
 const { Category } = require('powercord/components/settings')
-const { Button } = require('powercord/components')
-const Input = getModuleByDisplayName('TextInput')
+const { Button, AsyncComponent } = require('powercord/components')
+const Input = AsyncComponent.from(getModuleByDisplayName('TextInput'))
 
 module.exports = class Settings extends React.Component {
   constructor(props) {
     super(props)
 
-    const get = props.settings.get.bind(props.settings)
-
     this.state = {
       filesCategoryOpened: false,
       foldersCategoryOpened: false,
       exceptionsCategoryOpened: false,
-      files: get('files', []),
-      folders: get('folders', []),
-      exceptions: get('exceptions', [])
+      files: props.getSetting('files', []),
+      folders: props.getSetting('folders', []),
+      exceptions: props.getSetting('exceptions', [])
     }
   }
 
@@ -71,14 +69,12 @@ module.exports = class Settings extends React.Component {
     this._set('files', this.state.files)
     this._set('folders', this.state.folders)
     this._set('exceptions', this.state.exceptions)
-
-    this.state.changes = false
-    powercord.pluginManager.remount('pc-customa-dev-injector')
+    this.props.saveHandler()
   }
 
   generateInputs(toLoad) {
     let is = [...this.state[toLoad]]
-    if (is.length == 0) {
+    if (is.length === 0) {
       is.push({ key: 0, value: '' })
     }
 
@@ -91,7 +87,7 @@ module.exports = class Settings extends React.Component {
 
             if (e.target.value === "") {
               a.splice(i, 1)
-              if (a.length == 0) {
+              if (a.length === 0) {
                 return
               }
             } else {
@@ -122,7 +118,7 @@ module.exports = class Settings extends React.Component {
       value = defaultValue
     }
 
-    this.props.settings.set(key, value)
+    this.props.updateSetting(key, value)
     this.setState({ [key]: value })
   }
 }
