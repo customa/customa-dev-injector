@@ -3,110 +3,113 @@ const { React } = require("powercord/webpack")
 const { sleep } = require('powercord/util')
 const fs = require('fs')
 const path = require('path')
-
-let styleManager
-let idStorage = []
-let idCounter = 0
-let loadedFiles = []
-
 const { inject, uninject } = require("powercord/injector")
 const Settings = require('./reactcomponents/Settings')
 
 module.exports = class DevInjector extends Plugin {
+  constructor () {
+    super()
+      // Declare class wide variable to reuse
+      this.styleManager = undefined
+      this.idCounter = 0
+      this.idStorage = []
+      this.loadedFiles = []
+  }
   async startPlugin() {
-    // Get Style Manager due to repeated usage
-    styleManager = powercord.pluginManager.get('pc-styleManager')
+    this.styleManager = powercord.pluginManager.get('pc-styleManager')
 
+    while (!this.styleManager.ready) {
+      await sleep(1)
+    }
     // Load Internal Styling
-    styleManager.load(`Customa-Injector-Styles`, path.join(__dirname, 'style.css'))
-
+    this.styleManager.loadCSS(`Customa-Injector-Styles`, path.join(__dirname, 'style.css'))
     // Register Settings Menu
     this.registerSettings(
       'devInjector',
       'Customa Dev Injector',
-      () => React.createElement(Settings, { settings: this.settings })
+      () => React.createElement(Settings, { settings: this.settings, saveHandler: this.handleSave.bind(this) })
     )
 
     // Wait until the StyleManager is Ready
-    while (!styleManager.ready) {
-      await sleep(1)
-    }
+
 
     // Load Files and Folders with Default Parameters
     this.loadFiles()
     this.loadFolder()
   }
 
-  async pluginWillUnload() {
-    // Go through all the saved IDs and delete all styles associated with the plugin
-    idStorage.forEach(id => {
-      styleManager.unload(`Customa-Injector-File-${id}`)
-    })
-
-    // Delete Internal Styling
-    styleManager.unload(`Customa-Injector-Styles`)
-
-    // Clear ID Storage, loaded Files and reset the counter
-    idStorage = []
-    idCounter = 0
-    loadedFiles = []
+  handleSave() {
+    this.unloadAll()
+    this.loadFiles()
+    this.loadFolder()
   }
 
-  async loadFiles(filenames = this.settings.get('files'), exceptions = this.settings.get('exceptions'), folder = '') {
-    // When nothing is set in settings this field can be undefined, to not break the loop below, it will be set to an empty array
-    if (filenames == undefined) {
-      filenames = []
+  unloadAll() {
+    const themes = [...powercord.styleManager.themes.keys()].filter(k => k.includes('Customa-Injector-File'))
+    for (const theme of themes) {
+      powercord.styleManager.unmount(theme, powercord.styleManager.themes.get(theme).trackedFiles[0].file)
     }
-    if (exceptions == undefined) {
-      exceptions = []
+    this.idStorage = []
+    this.idCounter = 0
+    this.loadedFiles = []
+  }
+
+  async pluginWillUnload() {
+    // Go through all the saved IDs and delete all styles associated with the plugin
+    this.unloadAll()
+  }
+
+  async loadFiles(filenames = this.settings.get('files'), exceptions = this.settings.get('exceptions') || [], folder = '') {
+    // When nothing is set in settings this field can be undefined, to not break the loop below, it will be set to an empty array
+    if (!filenames) {
+      // End the function as we haven't received anything of use
+      return void 0;
     } else {
       // To be able to use .includes later in the code, all exceptions will be formed according to the filename
       exceptions = exceptions.map((exception) => {
-        return exception = exception.value.replace(/\\/g, '/')
+        return exception.value.replace(/\\/g, '/')
       })
     }
 
-
     // Loop through all the files
-    filenames.filter(e => e.value != '').forEach(element => {
+    filenames.filter(e => e.value).forEach(element => {
       // Gather Value from field
       let filename = element.value;
 
       // Is "folder" not empty or does it already end with a \
-      if (folder != '' && (folder.slice(-1)[0] != '\\' || folder.slice(-1)[0] != '/')) {
+      if (folder && (!folder.endsWith('\\') || !folder.endsWith('/'))) {
         filename = folder + '/' + filename
       } else {
         filename = folder + filename
       }
-
       // "Clean" the filename in DOS systems
       let cleanFilename = filename.replace(/\\/g, '/')
 
       // If File is exceptions ignore it
       if (exceptions.includes(cleanFilename)) {
         this.log("Excluded File: " + filename)
-      } else if (loadedFiles.includes(cleanFilename)) {
+      } else if (this.loadedFiles.includes(cleanFilename)) {
         this.log("Duplicate File: " + filename)
       } else {
         // Check if "File" is really a file
         if (fs.lstatSync(filename).isFile()) {
           // Check if the file is a css file
-          if (filename.split('.').slice(-1)[0] == 'css') {
+          if (filename.endsWith('css')) {
             // Create an ID (using the counter) and the filename (without filetype)
 
             filename = filename.replace(/\\/g, '/')
 
-            let id = `${idCounter}-${filename.split("/").slice(-1)[0].split('.')[0]}`
-            idCounter++
+            let id = `${this.idCounter}-${filename.split("/").slice(-1)[0].split('.')[0]}`
+            this.idCounter++
 
             // Push the new ID to the storage
-            idStorage.push(id)
+            this.idStorage.push(id)
 
             // Filename added to loaded files for internal checking
-            loadedFiles.push(filename)
+            this.loadedFiles.push(filename)
 
             // Load File
-            styleManager.load(`Customa-Injector-File-${id}`, filename)
+            this.styleManager.loadCSS(`Customa-Injector-File-${id}`, cleanFilename)
           }
         } else {
           // In case nested loading is needed, the current "file" will be sent to the folder loading again
@@ -116,27 +119,22 @@ module.exports = class DevInjector extends Plugin {
     })
   }
 
-  loadFolder(foldernames = this.settings.get('folders'), exceptions = this.settings.get('exceptions')) {
+  loadFolder(foldernames = this.settings.get('folders'), exceptions = this.settings.get('exceptions') || []) {
     // When nothing is set in settings this field can be undefined, to not break the loop below, it will be set to an empty array
-    if (foldernames == undefined) {
-      foldernames = []
-    }
-    if (exceptions == undefined) {
-      exceptions = []
+    if (!foldernames) {
+      // End function because we are not actually relieving anything of meaning
+      return void 0;
     } else {
       // To be able to use .includes later in the code, all exceptions will be formed according to the filename
       exceptions = exceptions.map((exception) => {
-        return exception = exception.value.replace(/\\/g, '/')
+        return exception.value.replace(/\\/g, '/')
       })
     }
 
     // Loop through all the folders
-    foldernames.filter(e => e.value != '').forEach(element => {
+    foldernames.filter(e => e.value).forEach(element => {
       // Gather Value from field
-      let foldername = element.value
-
-      // "Clean" the filename in DOS systems
-      foldername = foldername.replace(/\\/g, '/')
+      let foldername = element.value.replace(/\\/g, '/')
 
       // Ignore the folder when it is in the exceptions
       if (!exceptions.includes(foldername)) {
@@ -148,7 +146,7 @@ module.exports = class DevInjector extends Plugin {
 
           // Prepare Array for call of loadFile
           let files = fileNames.map((file) => {
-            return file = { key: 0, value: file }
+            return { key: 0, value: file }
           })
           this.loadFiles(files, undefined, foldername)
         } else {
