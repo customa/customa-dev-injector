@@ -7,15 +7,13 @@ module.exports = class Settings extends React.Component {
   constructor(props) {
     super(props)
 
-    const get = props.settings.get.bind(props.settings)
-
     this.state = {
       filesCategoryOpened: false,
       foldersCategoryOpened: false,
       exceptionsCategoryOpened: false,
-      files: get('files', []),
-      folders: get('folders', []),
-      exceptions: get('exceptions', [])
+      files: props.getSetting('files', []),
+      folders: props.getSetting('folders', []),
+      exceptions: props.getSetting('exceptions', [])
     }
   }
 
@@ -120,7 +118,7 @@ module.exports = class Settings extends React.Component {
       value = defaultValue
     }
 
-    this.props.settings.set(key, value)
+    this.props.updateSetting(key, value)
     this.setState({ [key]: value })
   }
 }

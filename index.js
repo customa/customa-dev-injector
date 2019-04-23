@@ -27,7 +27,7 @@ module.exports = class DevInjector extends Plugin {
     this.registerSettings(
       'devInjector',
       'Customa Dev Injector',
-      () => React.createElement(Settings, { settings: this.settings, saveHandler: this.handleSave.bind(this) })
+      (props) => React.createElement(Settings, { ...props, saveHandler: this.handleSave.bind(this) })
     )
 
     // Wait until the StyleManager is Ready
