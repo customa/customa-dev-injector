@@ -1,7 +1,7 @@
 {
   "name": "Customa Development Theme Injector",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Hot reload CSS Files for easy theme development",
   "author": "Customa Team",
-  "license": "GPLv3"
+  "license": "GPL-3.0-only"
 }
