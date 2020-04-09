@@ -12,12 +12,12 @@ It lets you load files and folder, set exceptions for those
 ## How to use it?
 1. Clone the repo into the plugins folder of Powercord using the following command:
 ```SH
-git clone https://gitlab.com/Customa/pc-customa-dev-injector.git
+git clone https://github.com/Customa/Customa-Dev-Injector.git
 ```
 2. a. Reload Discord<br>
 b. Put the following command into the Discord dev console:
 ```JS
-powercord.pluginManager.remount('pc-customa-dev-injector')
+powercord.pluginManager.remount('Customa-Dev-Injector')
 ```
 3. Go to the appropriate menu entry in Settings:<br>
 ![Menu Entry](docs/images/SettingsMenuEntry.png)
@@ -33,12 +33,12 @@ powercord.pluginManager.remount('pc-customa-dev-injector')
 * Variable injection?
 
 ## Known Issues
-* None, create a Gitlab Issue if you find any
+* None, create a Github Issue if you find any
 
 ## Thanks to
 * [Kosshi](https://github.com/kosshishub) for the original idea
 * Bowser65#0001 - for making me not lose faith in React and writing a solution on how to fix the Settings menu bug (and working on Powercord)
 * aetheryx#0001 - for looking at my messy code and trying to find the issue (and working on Powercord)
 
-Created by: [GhostlyDilemma](https://gitlab.com/GhostlyDilemma) @ [Customa](https://github.com/Customa)<br>
+Created by: [GhostlyDilemma](https://github.com/GhostlyDilemma) @ [Customa](https://github.com/Customa)<br>
 Original Idea: [Kosshi](https://github.com/kosshishub)
