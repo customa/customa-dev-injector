@@ -3,6 +3,7 @@ const { React } = require("powercord/webpack")
 const fs = require('fs')
 const path = require('path')
 const Settings = require('./reactcomponents/Settings')
+const fileRegex = /\.((s?c|le)ss|styl)$/;
 
 module.exports = class DevInjector extends Plugin {
   constructor() {
@@ -85,7 +86,7 @@ module.exports = class DevInjector extends Plugin {
         try {
           if (fs.lstatSync(filename).isFile()) {
             // Check if the file is a css file
-            if (filename.endsWith('css')) {
+            if (fileRegex.test(filename)) {
               // Create an ID (using the counter) and the filename (without filetype)
 
               filename = filename.replace(/\\/g, '/')
@@ -102,6 +103,7 @@ module.exports = class DevInjector extends Plugin {
               // Load File
               this.loadCSS(`Customa-Injector-File-${id}`, cleanFilename)
             }
+
           } else {
             // In case nested loading is needed, the current "file" will be sent to the folder loading again
             this.loadFolder([{ key: 0, value: filename }])
