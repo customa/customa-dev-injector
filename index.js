@@ -15,13 +15,14 @@ module.exports = class DevInjector extends Plugin {
   }
   async startPlugin() {
     // Load Internal Styling
-    this.loadCSS(`Customa-Injector-Styles`, path.join(__dirname, 'style.css'))
+
+    this.loadStylesheet('style.css')
     // Register Settings Menu
-    this.registerSettings(
-      'devInjector',
-      'Customa Dev Injector',
-      (props) => React.createElement(Settings, { ...props, saveHandler: this.handleSave.bind(this) })
-    )
+    powercord.api.settings.registerSettings('devInjector', {
+      category: this.entityID,
+      label: 'Customa Dev Injector',
+      render: (props) => React.createElement(Settings, { ...props, saveHandler: this.handleSave.bind(this) })
+    })
 
 
     // Load Files and Folders with Default Parameters
@@ -48,6 +49,8 @@ module.exports = class DevInjector extends Plugin {
   async pluginWillUnload() {
     // Go through all the saved IDs and delete all styles associated with the plugin
     this.unloadAll()
+    // Unregister Powercord Setting
+    powercord.api.settings.unregisterSettings('devInjector')
   }
 
   async loadFiles(filenames = this.settings.get('files'), exceptions = this.settings.get('exceptions') || [], folder = '') {
@@ -78,7 +81,8 @@ module.exports = class DevInjector extends Plugin {
 
       // If File is exceptions ignore it
       if (exceptions.includes(cleanFilename)) {
-        this.info(`Excluded File: ${filename}`)
+        console.log('test')
+        this.warn(`Excluded File: ${filename}`)
       } else if (this.loadedFiles.includes(cleanFilename)) {
         this.warn(`Duplicate File: ${filename}`)
       } else {
@@ -101,7 +105,7 @@ module.exports = class DevInjector extends Plugin {
               this.loadedFiles.push(filename)
 
               // Load File
-              this.loadCSS(`Customa-Injector-File-${id}`, cleanFilename)
+              this.loadStylesheet(cleanFilename)
             }
 
           } else {
@@ -154,7 +158,7 @@ module.exports = class DevInjector extends Plugin {
           this.error(`Folder not found: ${foldername}`)
         }
       } else {
-        this.info(`Excluded Folder: ${foldername}`)
+        this.warn(`Excluded Folder: ${foldername}`)
       }
     })
   }
